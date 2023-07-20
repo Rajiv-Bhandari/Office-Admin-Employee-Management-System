@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\SendEmail;
 use Illuminate\Mail\Message;
 use App\Jobs\EmailQueue;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -28,18 +31,27 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->only('email', 'password');
-
+    
         if ($credentials['email'] === 'admin' && $credentials['password'] === 'admin') {
             // Admin authentication successful
             return view('home');
         } else {
-            $credentials = $request->only('email', 'password');
-
-            $staff = Staff::where('email', $credentials['email'])->first();
-
-            if ($staff && Hash::check($credentials['password'], $staff->password)) {
-                // Staff authentication successful
-                auth()->login($staff);
+            if (Auth::attempt($credentials)) {
+                $user = Auth::user();
+                //change
+                session()->regenerate();
+                session(['generated' => true]);
+                // Check if the user is an instance of the Staff model
+                if ($user instanceof Staff) {
+                    // Generate a new session token and store it in the session
+                    $sessionToken = Str::random(60);
+                    $request->session()->put('session_token', $sessionToken);
+    
+                    // Update the session_token column in the staff table
+                    $user->update(['session_token' => $sessionToken]);
+                }
+    
+                // Redirect to the staff member's dashboard or homepage
                 return view('staff.home');
             } else {
                 // Invalid email or password
@@ -47,6 +59,26 @@ class AuthController extends Controller
             }
         }
     }
+    
+
+
+
+public function logout()
+{
+    $user = Auth::user();
+
+    if ($user instanceof Staff) {
+        $user->update(['session_token' => null]);
+    }
+
+    Auth::logout();
+    \session()->invalidate();
+    \session()->regenerateToken();
+
+    return \redirect('/login');
+}
+
+
 
 
     public function createPage()

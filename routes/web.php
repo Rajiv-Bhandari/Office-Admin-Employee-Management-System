@@ -4,7 +4,7 @@ use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
-
+use App\Models\Staff; 
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -17,8 +17,16 @@ use Illuminate\Support\Facades\Redirect;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    if (session()->has('generated')) {
+      
+        return redirect()->route('staff.home');
+        
+    } else {
+        
+        return view('welcome');
+    }
 })->name('welcome');
+
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 
@@ -40,6 +48,7 @@ Route::delete('/department/{department}/delete', [AuthController::class, 'destro
 Route::delete('/staff/{staff}/delete', [AuthController::class, 'staffdestroy'])->name('staffdestroy');
 Route::get('/staff/details', [AuthController::class, 'showStaff'])->name('staffdetails');
 
+
 // Add the following middleware group for protected routes
 Route::middleware(['auth'])->group(function () {
     
@@ -52,14 +61,27 @@ Route::middleware(['auth'])->group(function () {
     Route::put('staff/home/update-profile', [AuthController::class, 'updateProfile'])->name('updateProfile');
     Route::post('/staff/home/profile/updatepassword', [AuthController::class, 'updatepassword'])->name('updatepassword');
     Route::post('/staff/contact/sendmail', [AuthController::class, 'sendmail'])->name('sendmail');
-    Route::get('/logout', function () {
-        session()->invalidate();
-        session()->regenerateToken();
-        return Redirect::to('/login');
-    })->name('logout');
+    
+    // Route::get('/logout', function () {
+    //     //Auth::logout(); // Logout the user
+    //     session()->invalidate(); // Invalidate the current session
+    //     session()->regenerateToken(); // Regenerate the CSRF token
+    
+    //     return redirect('/login');
+    // })->name('logout');
+    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+        // Add this route to your web.php
+
+
 });
 
 // Redirect to the login page for unauthorized access
 Route::fallback(function () {
     return Redirect::to('/login');
 });
+Route::post('/clear-session-token', function () {
+    if (Auth::check() && Auth::user() instanceof Staff) {
+        Auth::user()->update(['session_token' => null]);
+    }
+})->middleware('auth');
+
