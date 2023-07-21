@@ -38,17 +38,28 @@ class AuthController extends Controller
         } else {
             if (Auth::attempt($credentials)) {
                 $user = Auth::user();
-                //change
-                session()->regenerate();
-                session(['generated' => true]);
+    
+                // Logging the user and their attributes
+                \Illuminate\Support\Facades\Log::info('User logged in', ['user' => $user]);
+    
+                // Change: Regenerate the session and mark it as generated
+                $request->session()->regenerate();
+                $request->session()->put('generated', true);
+    
                 // Check if the user is an instance of the Staff model
                 if ($user instanceof Staff) {
-                    // Generate a new session token and store it in the session
-                    $sessionToken = Str::random(60);
-                    $request->session()->put('session_token', $sessionToken);
+                    // Check if the session_token exists in the user model and the session
+                    $sessionToken = $user->session_token ?? $request->session()->get('session_token');
     
-                    // Update the session_token column in the staff table
-                    $user->update(['session_token' => $sessionToken]);
+                    // If the session_token is not set, generate a new one and store it
+                    if (!$sessionToken) {
+                        $sessionToken = Str::random(60);
+                        $request->session()->put('session_token', $sessionToken);
+                        $user->update(['session_token' => $sessionToken]);
+                    }
+    
+                    // Logging the session token
+                    \Illuminate\Support\Facades\Log::info('Session token', ['session_token' => $sessionToken]);
                 }
     
                 // Redirect to the staff member's dashboard or homepage
@@ -59,6 +70,8 @@ class AuthController extends Controller
             }
         }
     }
+    
+
     
 
 

@@ -133,42 +133,7 @@
   
   </div>
   
-<script>
-  // Variable to store the last status of the session
-  let lastStatus = true;
 
-  // Function to handle the session status check
-  function checkSessionStatus() {
-      fetch('/check-session')
-          .then(response => {
-              if (response.status === 401) {
-                  // If the session has expired, update the lastStatus variable
-                  lastStatus = false;
-                  window.location.href = '/logout';
-              } else {
-                  // If the session is still valid, update the lastStatus variable
-                  lastStatus = true;
-              }
-          })
-          .catch(error => {
-              console.error('Error checking session status:', error);
-          });
-  }
-
-  // Check if the session has expired every 5 seconds
-  setInterval(checkSessionStatus, 5000); // 5 seconds interval
-
-  // Handle the beforeunload event to log out from other tabs
-  window.addEventListener('beforeunload', () => {
-      if (lastStatus) {
-          // If the session is still valid, set the session_token to null in the staff table
-          fetch('/clear-session-token', { method: 'POST' })
-              .catch(error => {
-                  console.error('Error clearing session token:', error);
-              });
-      }
-  });
-</script>
 
 
   <!-- Bootstrap JS (optional, if you need any JavaScript functionality) -->
