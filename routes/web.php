@@ -30,7 +30,10 @@ Route::get('/', function () {
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 
-Route::post('/staff/home', [AuthController::class, 'login'])->name('logincontroller');
+
+
+Route::group(['middleware'=>'disable_back_btn'],function(){ 
+    Route::post('/staff/home', [AuthController::class, 'login'])->name('logincontroller');
 
 //access admin without authentication
 Route::get('/create/staff', [AuthController::class, 'createStaff'])->name('staff.create');
@@ -48,32 +51,33 @@ Route::delete('/department/{department}/delete', [AuthController::class, 'destro
 Route::delete('/staff/{staff}/delete', [AuthController::class, 'staffdestroy'])->name('staffdestroy');
 Route::get('/staff/details', [AuthController::class, 'showStaff'])->name('staffdetails');
 
-
-// Add the following middleware group for protected routes
-Route::middleware(['auth'])->group(function () {
+    Route::middleware(['auth'])->group(function () {
     
-    Route::get('/department/staffdepartmentdetails', [AuthController::class, 'staffdepartmentdetails'])->name('staffdepartmentdetails');
-    Route::get('/staff/staffviewstaff', [AuthController::class, 'staffviewstaff'])->name('staffviewstaff');
-    Route::get('/staff/home', [AuthController::class, 'staffhome'])->name('staff.home');
-    Route::get('/staff/contact', [AuthController::class, 'contatpage'])->name('contatpage'); 
-    Route::get('/staff/home/profile/changepassword', [AuthController::class, 'changepassword'])->name('changepassword');
-    Route::get('/staff/home/profile', [AuthController::class, 'staffprofile'])->name('staffprofile');
-    Route::put('staff/home/update-profile', [AuthController::class, 'updateProfile'])->name('updateProfile');
-    Route::post('/staff/home/profile/updatepassword', [AuthController::class, 'updatepassword'])->name('updatepassword');
-    Route::post('/staff/contact/sendmail', [AuthController::class, 'sendmail'])->name('sendmail');
+        Route::get('/department/staffdepartmentdetails', [AuthController::class, 'staffdepartmentdetails'])->name('staffdepartmentdetails');
+        Route::get('/staff/staffviewstaff', [AuthController::class, 'staffviewstaff'])->name('staffviewstaff');
+        Route::get('/staff/home', [AuthController::class, 'staffhome'])->name('staff.home');
+        Route::get('/staff/contact', [AuthController::class, 'contatpage'])->name('contatpage'); 
+        Route::get('/staff/home/profile/changepassword', [AuthController::class, 'changepassword'])->name('changepassword');
+        Route::get('/staff/home/profile', [AuthController::class, 'staffprofile'])->name('staffprofile');
+        Route::put('staff/home/update-profile', [AuthController::class, 'updateProfile'])->name('updateProfile');
+        Route::post('/staff/home/profile/updatepassword', [AuthController::class, 'updatepassword'])->name('updatepassword');
+        Route::post('/staff/contact/sendmail', [AuthController::class, 'sendmail'])->name('sendmail');
+        
+        // Route::get('/logout', function () {
+        //     //Auth::logout(); // Logout the user
+        //     session()->invalidate(); // Invalidate the current session
+        //     session()->regenerateToken(); // Regenerate the CSRF token
+        
+        //     return redirect('/login');
+        // })->name('logout');
+        Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+            // Add this route to your web.php
     
-    // Route::get('/logout', function () {
-    //     //Auth::logout(); // Logout the user
-    //     session()->invalidate(); // Invalidate the current session
-    //     session()->regenerateToken(); // Regenerate the CSRF token
     
-    //     return redirect('/login');
-    // })->name('logout');
-    Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
-        // Add this route to your web.php
-
-
+    });
 });
+// Add the following middleware group for protected routes
+
 
 // Redirect to the login page for unauthorized access
 Route::fallback(function () {

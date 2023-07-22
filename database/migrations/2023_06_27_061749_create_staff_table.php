@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('status');
             $table->foreignId('dept_id')->constrained('department', 'id');
+            
             $table->timestamps();
         });
     }

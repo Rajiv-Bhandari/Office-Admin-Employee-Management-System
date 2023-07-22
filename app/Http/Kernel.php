@@ -32,7 +32,7 @@ class Kernel extends HttpKernel
     protected $middlewareGroups = [
         'web' => [
             \Illuminate\Session\Middleware\StartSession::class,
-            \App\Http\Middleware\CheckSessionExpiration::class,
+            //\App\Http\Middleware\CheckSessionExpiration::class,
             //\App\Http\Middleware\SessionGuard::class,
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
@@ -67,10 +67,12 @@ class Kernel extends HttpKernel
         'signed' => \App\Http\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'disable_back_btn' => \App\Http\Middleware\DisableBackBtn::class,
     ];
     //added this 
     protected $routeMiddleware = [
         // ...
+        'clear.other.staff.sessions' => \App\Http\Middleware\ClearOtherStaffSessions::class,
         'check.session.expiration' => \App\Http\Middleware\CheckSessionExpiration::class,
     ];
     

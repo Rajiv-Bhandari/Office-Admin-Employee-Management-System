@@ -16,6 +16,7 @@ use App\Jobs\EmailQueue;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
+use App\Http\Middleware\CheckSessionExpiration;
 
 class AuthController extends Controller
 {
@@ -28,49 +29,46 @@ class AuthController extends Controller
     {
         return view('staff.contatpage');
     }
-    public function login(Request $request)
-    {
-        $credentials = $request->only('email', 'password');
-    
-        if ($credentials['email'] === 'admin' && $credentials['password'] === 'admin') {
-            // Admin authentication successful
-            return view('home');
+    protected function clearSessionToken($staffId)
+{
+    // Clear the session_token for the staff member with the given ID
+    $staff = Staff::find($staffId);
+    if ($staff) {
+        $staff->update(['session_token' => null]);
+    }
+}
+
+public function login(Request $request)
+{
+    $credentials = $request->only('email', 'password');
+
+    if ($credentials['email'] === 'admin' && $credentials['password'] === 'admin') {
+        // Admin authentication successful
+        return view('home');
+    } else {
+        $staff = Staff::where('email', $credentials['email'])->first();
+
+        if ($staff && Hash::check($credentials['password'], $staff->password)) {
+            // Staff authentication successful
+            auth()->login($staff);
+
+            // Generate a new session token and store it in the session
+            $sessionToken = Str::random(60);
+            $request->session()->put('session_token', $sessionToken);
+
+            // Clear the session token for this staff member from other devices
+            $this->clearSessionToken($staff->id);
+
+            // Update the session_token column in the staff table
+            $staff->update(['session_token' => $sessionToken]);
+
+            return view('staff.home');
         } else {
-            if (Auth::attempt($credentials)) {
-                $user = Auth::user();
-    
-                // Logging the user and their attributes
-                \Illuminate\Support\Facades\Log::info('User logged in', ['user' => $user]);
-    
-                // Change: Regenerate the session and mark it as generated
-                $request->session()->regenerate();
-                $request->session()->put('generated', true);
-    
-                // Check if the user is an instance of the Staff model
-                if ($user instanceof Staff) {
-                    // Check if the session_token exists in the user model and the session
-                    $sessionToken = $user->session_token ?? $request->session()->get('session_token');
-    
-                    // If the session_token is not set, generate a new one and store it
-                    if (!$sessionToken) {
-                        $sessionToken = Str::random(60);
-                        $request->session()->put('session_token', $sessionToken);
-                        $user->update(['session_token' => $sessionToken]);
-                    }
-    
-                    // Logging the session token
-                    \Illuminate\Support\Facades\Log::info('Session token', ['session_token' => $sessionToken]);
-                }
-    
-                // Redirect to the staff member's dashboard or homepage
-                return view('staff.home');
-            } else {
-                // Invalid email or password
-                return back()->withInput()->withErrors('Invalid email or password');
-            }
+            // Invalid email or password
+            return back()->withInput()->withErrors('Invalid email or password');
         }
     }
-    
+}
 
     
 

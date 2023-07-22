@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Staff;
 
 class CheckSessionExpiration
 {
@@ -17,7 +18,7 @@ class CheckSessionExpiration
                 Auth::logout();
 
                 // Clear the session_token in the staff table
-                Auth::user()->update(['session_token' => null]);
+                $this->clearSessionToken(Auth::user()->id);
 
                 // Redirect to the login page with a message indicating the session logout
                 return redirect()->route('login')->withErrors('You have been logged out from other devices.');
@@ -25,5 +26,14 @@ class CheckSessionExpiration
         }
 
         return $next($request);
+    }
+
+    protected function clearSessionToken($staffId)
+    {
+        // Clear the session_token for the staff member with the given ID
+        $staff = Staff::find($staffId);
+        if ($staff) {
+            $staff->update(['session_token' => null]);
+        }
     }
 }
