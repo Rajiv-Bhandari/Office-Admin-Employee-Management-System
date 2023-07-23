@@ -90,7 +90,7 @@
 </head>
 <body>
   <div class="container">
-    <a href="/logout" class="btn btn-danger logout-button">Logout</a>
+    <a href={{route('logout')}} class="btn btn-danger logout-button">Logout</a>
     
     <div class="admin-text">
         <h1>Hello, {{ Auth::user()->name }}</h1>

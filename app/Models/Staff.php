@@ -26,4 +26,8 @@ class Staff extends Model implements Authenticatable
     {
         return $this->belongsTo(Department::class, 'dept_id');
     }
+    public function sessions()
+    {
+        return $this->hasMany(\Illuminate\Session\Session::class, 'user_id');
+    }
 }

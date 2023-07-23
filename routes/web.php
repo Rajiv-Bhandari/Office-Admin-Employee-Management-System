@@ -52,7 +52,7 @@ Route::delete('/staff/{staff}/delete', [AuthController::class, 'staffdestroy'])-
 Route::get('/staff/details', [AuthController::class, 'showStaff'])->name('staffdetails');
 
     Route::middleware(['auth'])->group(function () {
-    
+        Route::middleware(['web', 'checkSessionExpiration'])->group(function (){
         Route::get('/department/staffdepartmentdetails', [AuthController::class, 'staffdepartmentdetails'])->name('staffdepartmentdetails');
         Route::get('/staff/staffviewstaff', [AuthController::class, 'staffviewstaff'])->name('staffviewstaff');
         Route::get('/staff/home', [AuthController::class, 'staffhome'])->name('staff.home');
@@ -73,7 +73,7 @@ Route::get('/staff/details', [AuthController::class, 'showStaff'])->name('staffd
         Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
             // Add this route to your web.php
     
-    
+        });
     });
 });
 // Add the following middleware group for protected routes
@@ -83,9 +83,5 @@ Route::get('/staff/details', [AuthController::class, 'showStaff'])->name('staffd
 Route::fallback(function () {
     return Redirect::to('/login');
 });
-Route::post('/clear-session-token', function () {
-    if (Auth::check() && Auth::user() instanceof Staff) {
-        Auth::user()->update(['session_token' => null]);
-    }
-})->middleware('auth');
+
 

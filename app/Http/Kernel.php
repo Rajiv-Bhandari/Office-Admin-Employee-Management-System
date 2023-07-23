@@ -31,22 +31,23 @@ class Kernel extends HttpKernel
      */
     protected $middlewareGroups = [
         'web' => [
+            \Illuminate\Session\Middleware\AuthenticateSession::class,
             \Illuminate\Session\Middleware\StartSession::class,
-            //\App\Http\Middleware\CheckSessionExpiration::class,
-            //\App\Http\Middleware\SessionGuard::class,
+            \App\Http\Middleware\CheckSessionExpiration::class,
             \App\Http\Middleware\EncryptCookies::class,
             \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
-
+    
         'api' => [
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             \Illuminate\Routing\Middleware\ThrottleRequests::class.':api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
     ];
+    
 
     /**
      * The application's middleware aliases.
@@ -68,12 +69,8 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'disable_back_btn' => \App\Http\Middleware\DisableBackBtn::class,
+        'checkSessionExpiration' => \App\Http\Middleware\CheckSessionExpiration::class,
     ];
-    //added this 
-    protected $routeMiddleware = [
-        // ...
-        'clear.other.staff.sessions' => \App\Http\Middleware\ClearOtherStaffSessions::class,
-        'check.session.expiration' => \App\Http\Middleware\CheckSessionExpiration::class,
-    ];
+   
     
 }

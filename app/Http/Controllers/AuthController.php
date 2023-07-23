@@ -29,16 +29,8 @@ class AuthController extends Controller
     {
         return view('staff.contatpage');
     }
-    protected function clearSessionToken($staffId)
-{
-    // Clear the session_token for the staff member with the given ID
-    $staff = Staff::find($staffId);
-    if ($staff) {
-        $staff->update(['session_token' => null]);
-    }
-}
 
-public function login(Request $request)
+    public function login(Request $request)
 {
     $credentials = $request->only('email', 'password');
 
@@ -47,21 +39,23 @@ public function login(Request $request)
         return view('home');
     } else {
         $staff = Staff::where('email', $credentials['email'])->first();
-
+        
         if ($staff && Hash::check($credentials['password'], $staff->password)) {
             // Staff authentication successful
             auth()->login($staff);
 
-            // Generate a new session token and store it in the session
+            // Generate a new session token
             $sessionToken = Str::random(60);
+
+            // Store the new session token in the session
             $request->session()->put('session_token', $sessionToken);
 
-            // Clear the session token for this staff member from other devices
-            $this->clearSessionToken($staff->id);
-
-            // Update the session_token column in the staff table
+            // Update the user's session_token with the new session token
             $staff->update(['session_token' => $sessionToken]);
 
+            
+
+            // Redirect to the staff member's dashboard or homepage
             return view('staff.home');
         } else {
             // Invalid email or password
@@ -70,26 +64,24 @@ public function login(Request $request)
     }
 }
 
-    
-
 
 
 public function logout()
 {
     $user = Auth::user();
-
-    if ($user instanceof Staff) {
-        $user->update(['session_token' => null]);
-    }
-
+    $staff = Staff::find(Auth::id()); 
+    $staff->update(['session_token' => null]);
+    // if ($user instanceof Staff) {
+        
+    //     $user->update(['session_token' => null]);
+    // }
+    
     Auth::logout();
     \session()->invalidate();
     \session()->regenerateToken();
 
     return \redirect('/login');
 }
-
-
 
 
     public function createPage()

@@ -11,14 +11,16 @@ class CheckSessionExpiration
     public function handle($request, Closure $next)
     {
         // Check if the staff member is logged in and has a session_token
-        if (Auth::check() && Auth::user() instanceof Staff && $request->session()->has('session_token')) {
+        $staff = Staff::find(Auth::id());
+
+        if ($staff instanceof Staff && $request->session()->has('session_token')) {
             // Check if the session_token in the database matches the one in the current session
-            if (Auth::user()->session_token !== $request->session()->get('session_token')) {
+            if ($staff->session_token !== $request->session()->get('session_token')) {
                 // Log out the staff member from the current session
                 Auth::logout();
 
                 // Clear the session_token in the staff table
-                $this->clearSessionToken(Auth::user()->id);
+                $this->clearSessionToken($staff->id);
 
                 // Redirect to the login page with a message indicating the session logout
                 return redirect()->route('login')->withErrors('You have been logged out from other devices.');
@@ -32,7 +34,7 @@ class CheckSessionExpiration
     {
         // Clear the session_token for the staff member with the given ID
         $staff = Staff::find($staffId);
-        if ($staff) {
+        if ($staff && $staff->session_token) {
             $staff->update(['session_token' => null]);
         }
     }
